@@ -23,31 +23,10 @@ function Balance({ address }: { address: `0x${string}` }) {
   );
 }
 
-function ConnectVatar({ address }: { address: `0x${string}` }) {
-  const { data: balance, isLoading } = useReadContract({
-    address: connektvatar.contractAddress,
-    abi: connektvatar.contractAbi,
-    functionName: "balanceOf",
-    args: [address],
-  });
-
-  return isLoading ? (
-    <p>Loading...</p>
-  ) : (
-    <div className="flex">
-      <img
-        className="h-10 w-10"
-        src={`https://bafybeibm5kcupvkixeieonzisk4slwigc2zxesmj3dt3wx4oawybupnfza.ipfs.nftstorage.link/1.jpg`}
-        alt=""
-      />
-    </div>
-  );
-}
-
-export default function Dashboard() {
+function MyConnectVatar({ address }: { address: `0x${string}` }) {
+  const account = useAccount();
   const [connectedTag, setConnectedTag] = useState<string>("");
   const [listeningSelfTag, setListeningSelfTag] = useState<boolean>(false);
-  const account = useAccount();
   const {
     data: hash,
     writeContract,
@@ -55,6 +34,14 @@ export default function Dashboard() {
     isPending: isMintPending,
     error: mintError,
   } = useWriteContract();
+
+  useEffect(() => {
+    // Check if connectedTag is in localStorage or else add it to localStorage
+    const tag = localStorage.getItem("connectedTag");
+    if (tag) {
+      setConnectedTag(tag);
+    }
+  }, []);
 
   function handleTagRead() {
     setListeningSelfTag(true);
@@ -82,47 +69,27 @@ export default function Dashboard() {
         console.log(`Error! Scan failed to start: ${error}.`);
       });
   }
-
-  function handleFrenTagRead() {
-    const ndef = new NDEFReader();
-    ndef
-      .scan()
-      .then(() => {
-        console.log("Scan started successfully.");
-        ndef.onreadingerror = (event) => {
-          console.log(
-            "Error! Cannot read data from the NFC tag. Try a different one?"
-          );
-        };
-        ndef.onreading = ({ message, serialNumber }) => {
-          window.alert(
-            "Scan started successfully." +
-              JSON.stringify({ message, serialNumber })
-          );
-          // Add the function to connect with frens
-          // TODO: Check with contract if already connected
-          // If not, connect with frens
-          // TODO: Share the NFC tag of fren to the contract to validate and earn points
-        };
-      })
-      .catch((error) => {
-        console.log(`Error! Scan failed to start: ${error}.`);
-      });
-  }
+  const {
+    data: tokenId,
+    isLoading,
+    error,
+  } = useReadContract({
+    address: connektvatar.contractAddress,
+    abi: connektvatar.contractAbi,
+    functionName: "getTokenIdForAddress",
+    args: [address],
+  });
 
   useEffect(() => {
-    // Check if connectedTag is in localStorage or else add it to localStorage
-    const tag = localStorage.getItem("connectedTag");
-    if (tag) {
-      setConnectedTag(tag);
-    }
+    console.log("error", error, tokenId);
   }, []);
 
-  return (
-    <div className="container mx-auto px-4 py-2">
-      <ConnectVatar address={account.address as any} />
-
-      <section>
+  return isLoading ? (
+    <p>Loading your Connectvatar...</p>
+  ) : (
+    <section>
+      {" "}
+      <div>
         <h1 className="text-2xl font-bold ">Let&apos;s get started</h1>
         <h3 className="text-xl text-zinc-400 font-medium ">
           Sync your Tag & mint your Connektvatar
@@ -144,9 +111,8 @@ export default function Dashboard() {
             </Button>
           )}
         </div>
-      </section>
-
-      <section>
+      </div>
+      <div>
         <div className="flex flex-col space-y-4">
           <p className="mt-2 text-zinc-600 font-medium">
             Create a unique digital representation of yourself.
@@ -155,9 +121,8 @@ export default function Dashboard() {
             onClick={() => {
               const args = [
                 BigInt(
-                  1
-                  // JSON.parse(localStorage.getItem("worldcoinSignature") || "{}")
-                  //   .message
+                  JSON.parse(localStorage.getItem("worldcoinSignature") || "{}")
+                    .message
                 ), // nullifierHash
                 BigInt(
                   1
@@ -185,36 +150,75 @@ export default function Dashboard() {
             This will require a small gas fee (one-time cost).
           </p>
         </div>
-      </section>
-
-      <section>
+      </div>
+      <div>
         <h1 className="text-2xl font-bold mt-10">Your connekt balance:</h1>
         <div className="flex justify-between items-center py-4 border-b border-1 border-gray-600">
           <p className="text-gray-300 font-medium">Connekt Coin (CNKT)</p>
           {account?.address && <Balance address={account.address} />}
         </div>
-      </section>
+      </div>
+      <ConnectWithFrens />
+    </section>
+  );
+}
 
-      {/* TODO: After completing the above steps, show this  */}
-      <section>
-        <h1 className="text-2xl font-bold mt-10">
-          Now, Connect with frens to earn CNKT coins
-        </h1>
-        <div className="flex justify-between items-center py-4 ">
-          {/* UI to read NFC from others  */}
-          <p className="text-gray-300 font-medium">Make some monies 🤑</p>
-          <Button
-            onClick={
-              //  TODO: Add the function to read NFC from others
-              handleFrenTagRead
-            }
-            className="font-bold py-2 px-4  rounded-md shadow-md text-white hover:text-white hover:bg-red-500 bg-blue-500 border-red-500  border-3 
-            "
-          >
-            Connect with frens 🤝
-          </Button>
-        </div>
-      </section>
+function ConnectWithFrens() {
+  function handleFrenTagRead() {
+    const ndef = new NDEFReader();
+    ndef
+      .scan()
+      .then(() => {
+        console.log("Scan started successfully.");
+        ndef.onreadingerror = (event) => {
+          console.log(
+            "Error! Cannot read data from the NFC tag. Try a different one?"
+          );
+        };
+        ndef.onreading = ({ message, serialNumber }) => {
+          window.alert(
+            "Scan started successfully." +
+              JSON.stringify({ message, serialNumber })
+          );
+          // Add the function to connect with frens
+          // TODO: Check with contract if already connected
+          // If not, connect with frens
+          // TODO: Share the NFC tag of fren to the contract to validate and earn points
+        };
+      })
+      .catch((error) => {
+        console.log(`Error! Scan failed to start: ${error}.`);
+      });
+  }
+  return (
+    <section>
+      <h1 className="text-2xl font-bold mt-10">
+        Now, Connect with frens to earn CNKT coins
+      </h1>
+      <div className="flex justify-between items-center py-4 ">
+        {/* UI to read NFC from others  */}
+        <p className="text-gray-300 font-medium">Make some monies 🤑</p>
+        <Button
+          onClick={
+            //  TODO: Add the function to read NFC from others
+            handleFrenTagRead
+          }
+          className="font-bold py-2 px-4  rounded-md shadow-md text-white hover:text-white hover:bg-red-500 bg-blue-500 border-red-500  border-3 
+        "
+        >
+          Connect with frens 🤝
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+export default function Dashboard() {
+  const account = useAccount();
+
+  return (
+    <div className="container mx-auto px-4 py-2">
+      <MyConnectVatar address={account?.address as any} />
 
       <section className="ring-1 rounded-xl ring-zinc-600 p-3 mt-10">
         <h1 className="text-xl font-bold text-white mb-2  ">
