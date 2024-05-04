@@ -10,12 +10,29 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { type ThemeProviderProps } from "next-themes/dist/types";
 import { sepolia, mantle, mantaTestnet } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { type Chain } from "viem";
+
+export const mantleSepolia = {
+  id: 5003,
+  name: "Mantle Sepolia",
+  nativeCurrency: { name: "MNT", symbol: "MNT", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://rpc.sepolia.mantle.xyz"] },
+  },
+  blockExplorers: {
+    default: {
+      name: "Mantle Explorer",
+      url: "https://explorer.sepolia.mantle.xyz",
+    },
+  },
+} as const satisfies Chain;
+
 const queryClient = new QueryClient();
 
 const config = getDefaultConfig({
   appName: "Connekt",
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID || "",
-  chains: [sepolia, mantle, mantaTestnet],
+  chains: [sepolia, mantle, mantleSepolia],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 

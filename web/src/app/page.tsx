@@ -70,13 +70,13 @@ export default function Home() {
   useEffect(() => {}, []);
 
   return (
-    <main className="container flex min-h-screen flex-col items-center justify-center p-10">
+    <main className="mx-5 flex min-h-screen flex-col items-center justify-center pb-10">
       <div className="absolute top-5 right-5">
         <ModeToggle />
       </div>
       <div className="relative grid grid-cols-1 container place-items-center">
         <Image
-          className="relative"
+          className="relative -mb-3"
           src="/giphy.gif"
           alt="Logo"
           width={250}
@@ -84,19 +84,24 @@ export default function Home() {
           priority
         />
         <div className="text-center mb-5">
-          <div className="text-4xl font-bold">Connekt</div>
-          <div className="text-lg w-[300px] mt-3 text-zinc-600">
-            Tap NFC tags, level up your NFT, and compete with friends for a
-            chance to win real money!{" "}
-            <span className="font-bold text-zinc-500">
-              Connect. Level Up. Earn.
+          <div className="text-3xl font-bold">
+            <span className="flex justify-center items-center">
+              <img
+                src="https://www.nounskarma.xyz/logo/nouns-logo.svg"
+                alt=""
+                className="h-20 w-20 mr-3"
+              />
+              Connekt
             </span>
+          </div>
+          <div className="font-bold text-zinc-400 -mt-3">
+            A nounish game to connect, earn & win big
           </div>
         </div>
       </div>
 
-      <section className="lg:max-w-5xl lg:w-full ">
-        <div className="ring-1 ring-zinc-700 rounded-xl p-3 w-full">
+      <section className="lg:max-w-6xl lg:w-full">
+        <div className="ring-1 ring-zinc-700 rounded-xl p-1 w-full">
           {!account?.address ? (
             <div className="flex justify-center items-center flex-col">
               <h3 className="text-md mb-5">
@@ -105,7 +110,7 @@ export default function Home() {
               <ConnectButton />
             </div>
           ) : (
-            <div className="flex justify-center items-start flex-col">
+            <div className="flex justify-center items-start flex-col ">
               <div className="flex w-full justify-between items-center">
                 <ConnectButton />
 
@@ -124,21 +129,16 @@ export default function Home() {
                     )}
                   </IDKitWidget>
                 ) : (
-                  <div className="text-right">
-                    <Badge>Worldcoin ✅</Badge>
-                    <p className="text-zinc-600 text-sm mt-2 text-right">
-                      {worldcoinId.nullifier_hash.slice(0, 6)}...
-                      {worldcoinId.nullifier_hash.slice(-6)}
+                  <div className="text-right mt-1 mr-1">
+                    <Badge className="text-xs bg-zinc-400">Worldcoin ✅</Badge>
+                    <p className="text-zinc-600 text-xs mt-2 text-right">
+                      {worldcoinId.nullifier_hash.slice(0, 12)}
                     </p>
                   </div>
                 )}
               </div>
 
-              {account?.address && worldcoinVerified && (
-                <section className="mt-4 flex justify-center items-center">
-                  <Dashboard />
-                </section>
-              )}
+              {account?.address && worldcoinVerified && <Dashboard />}
             </div>
           )}
         </div>

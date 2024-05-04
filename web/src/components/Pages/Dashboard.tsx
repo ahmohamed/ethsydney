@@ -26,6 +26,7 @@ function Balance({ address }: { address: `0x${string}` }) {
 
 export default function Dashboard() {
   const [connectedTag, setConnectedTag] = useState<string>("");
+  const [listeningSelfTag, setListeningSelfTag] = useState<boolean>(false);
   const account = useAccount();
   const {
     data: hash,
@@ -64,6 +65,7 @@ export default function Dashboard() {
           );
           setConnectedTag(serialNumber);
           console.log("NDEF message read.");
+          setListeningSelfTag(false);
         };
       })
       .catch((error) => {
@@ -107,35 +109,49 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-2">
       <section>
-        <h1 className="text-3xl font-bold ">1. Your Tag</h1>
-        <div className="flex flex-col space-y-4">
-          <p className="text-zinc-600 font-medium">
-            Tag your tag everywhere you go.
-          </p>
+        <h1 className="text-2xl font-bold ">Let&apos;s get started</h1>
+        <h3 className="text-xl text-zinc-400 font-medium ">
+          Sync your Tag & mint your Connektvatar
+        </h3>
+        <div className="flex flex-col space-y-4 pt-3">
           {connectedTag ? (
-            <div className="bg-gray-100 rounded-lg shadow-md p-4">
+            <div className="flex justify-between items-center bg-gray-100 rounded-lg shadow-md p-2">
               <p className="text-gray-800 font-medium">{connectedTag}</p>
+              <Button
+                onClick={() => {
+                  setListeningSelfTag(true);
+                  handleTagRead();
+                }}
+                className="text-sm bg-red-500 text-white hover:bg-zinc-800"
+              >
+                Rescan 🔃
+              </Button>
             </div>
           ) : (
-            <Button className="font-bold" onClick={handleTagRead}>
-              Sync NFC Tag 🔗
+            <Button
+              className="font-bold"
+              onClick={() => {
+                setListeningSelfTag(true);
+                handleTagRead();
+              }}
+            >
+              {listeningSelfTag ? "Listening for tag..." : "Sync NFC Tag 🔗"}
             </Button>
           )}
         </div>
       </section>
 
       <section>
-        <h1 className="text-3xl font-bold mt-10">2. Mint your Connectvatar</h1>
         <div className="flex flex-col space-y-4">
-          <p className="text-zinc-600 font-medium">
+          <p className="mt-2 text-zinc-600 font-medium">
             Create a unique digital representation of yourself.
           </p>
           <Button
             onClick={handleMint}
             disabled={isMintPending}
-            className="font-bold py-2 px-4 rounded-md shadow-md"
+            className="font-bold py-2 px-4 hover:bg-red-500 bg-yellow-400 rounded-md shadow-md"
           >
             {isMintPending ? "Minting..." : "Mint your Connectvatar 🎨"}
           </Button>
@@ -146,30 +162,46 @@ export default function Dashboard() {
       </section>
 
       <section>
-        <h1 className="text-3xl font-bold mt-10">
-          3. View your connekt balance
-        </h1>
-        <div className="flex justify-between items-center py-4 border-b border-gray-200">
+        <h1 className="text-2xl font-bold mt-10">Your connekt balance:</h1>
+        <div className="flex justify-between items-center py-4 border-b border-1 border-gray-600">
           <p className="text-gray-300 font-medium">Connekt Coin (CNKT)</p>
           <span className="text-xl font-bold text-yellow-500">10.00 CNKT</span>
           {account?.address && <Balance address={account.address} />}
         </div>
       </section>
+
+      {/* TODO: After completing the above steps, show this  */}
       <section>
-        <h1 className="text-3xl font-bold mt-10">
-          4. Connect with frens to earn CNKT coins
+        <h1 className="text-2xl font-bold mt-10">
+          Now, Connect with frens to earn CNKT coins
         </h1>
-        <div className="flex justify-between items-center py-4 border-b border-gray-200">
+        <div className="flex justify-between items-center py-4 ">
           {/* UI to read NFC from others  */}
-          <p className="text-gray-300 font-medium">Connect with frens</p>
+          <p className="text-gray-300 font-medium">Make some monies 🤑</p>
           <Button
-            // onClick={
-            //  TODO: Add the function to read NFC from others
-            // }
-            className="font-bold py-2 px-4 rounded-md shadow-md"
+            onClick={
+              //  TODO: Add the function to read NFC from others
+              handleFrenTagRead
+            }
+            className="font-bold py-2 px-4  rounded-md shadow-md text-white hover:text-white hover:bg-red-500 bg-blue-500 border-red-500  border-3 
+            "
           >
             Connect with frens 🤝
           </Button>
+        </div>
+      </section>
+
+      <section className="ring-1 rounded-xl ring-zinc-600 p-3 mt-10">
+        <h1 className="text-xl font-bold text-white mb-2  ">
+          Previous Winners
+        </h1>
+        <div className="flex justify-start items-center">
+          <img
+            className="h-20 w-20"
+            src="https://media.discordapp.net/attachments/1235922622362161242/1236320537031213096/monumental-purring-toucanet-from-arcadia.jpg?ex=663794b9&is=66364339&hm=57a58bc5dd54ecfdc6f7f24d91684dc2dec102632625c99e648a985d99df6a6f&=&format=webp&width=993&height=993"
+            alt=""
+          />
+          <div className="text-lg ml-2">ccarella.eth</div>
         </div>
       </section>
     </div>
