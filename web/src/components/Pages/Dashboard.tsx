@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useWriteContract } from "wagmi";
@@ -5,6 +7,41 @@ import { connekt, connektvatar } from "@/lib/consts";
 import { useReadContract } from "wagmi";
 import { useAccount } from "wagmi";
 import { parseEther } from "viem";
+import { ethers } from "ethers";
+
+async function getTokenIdForAddress(accountAddress: string) {
+  try {
+    const provider = new ethers.AlchemyProvider("sepolia");
+    const contract = new ethers.Contract(
+      connektvatar.contractAddress,
+      connektvatar.contractAbi,
+      provider
+    );
+
+    const tokenId = await contract.getTokenIdForAddress(accountAddress);
+    return tokenId.toNumber(); // Convert BigNumber to number
+  } catch (error) {
+    console.error("Error fetching tokenId:", error);
+    // Handle error appropriately (e.g., set error state)
+  }
+}
+
+async function isConnectedFrom(fromAddress: string, nfcHash: string) {
+  try {
+    const provider = new ethers.AlchemyProvider("sepolia");
+    const contract = new ethers.Contract(
+      connektvatar.contractAddress,
+      connektvatar.contractAbi,
+      provider
+    );
+
+    const isConnected = await contract.connekted(fromAddress, nfcHash);
+    return isConnected; // Convert BigNumber to number
+  } catch (error) {
+    console.error("Error fetching connection info for person b:", error);
+    // Handle error appropriately (e.g., set error state)
+  }
+}
 
 function Balance({ address }: { address: `0x${string}` }) {
   const { data: balance, isLoading } = useReadContract({
@@ -23,12 +60,15 @@ function Balance({ address }: { address: `0x${string}` }) {
   );
 }
 
-function MyConnectVatar({ address }: { address: `0x${string}` }) {
+function MyConnectVatar() {
   const account = useAccount();
+  const [tokenId, setTokenId] = useState<number | undefined>(undefined); // [tokenId, setTokenId
   const [connectedTag, setConnectedTag] = useState<string>("");
   const [listeningSelfTag, setListeningSelfTag] = useState<boolean>(false);
+  const [isTokenLoading, setIsTokenLoading] = useState<boolean>(true);
+
   const {
-    data: hash,
+    data: mintHash,
     writeContract,
     isSuccess: isMintSuccess,
     isPending: isMintPending,
@@ -70,25 +110,41 @@ function MyConnectVatar({ address }: { address: `0x${string}` }) {
       });
   }
 
-  const {
-    data: tokenId,
-    isLoading: isTokenLoading,
-    error: tokenIdError,
-  } = useReadContract({
-    abi: connektvatar.contractAbi,
-    address: connektvatar.contractAddress,
-    functionName: "getTokenIdForAddress",
-    args: [address],
-  });
+  const handleMint = () => {
+    const args = [
+      BigInt(
+        JSON.parse(localStorage.getItem("worldcoinSignature") || "{}").message
+      ), // nullifierHash
+      BigInt(
+        1 // JSON.parse(localStorage.getItem("worldcoinSignature") || "{}").signature
+      ), // signedHash
+      parseInt(connectedTag), // nfcSerialHash
+    ];
+    writeContract({
+      address: connektvatar.contractAddress,
+      abi: connektvatar.contractAbi,
+      functionName: "safeMint",
+      value: parseEther("0.01"),
+      args,
+    });
+    console.log("Minting...", mintError, args);
+  };
 
   useEffect(() => {
-    tokenIdError && console.error("Error ", tokenIdError);
-    console.log("tokenId", tokenId);
+    getTokenIdForAddress(account?.address || "")
+      .then((tokenId) => {
+        setTokenId(tokenId.toNumber() || 1);
+        setIsTokenLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching tokenId:", error);
+        setIsTokenLoading(false);
+      });
   }, []);
 
   return isTokenLoading ? (
     <p>Loading your Connectvatar...</p>
-  ) : tokenId === undefined ? (
+  ) : tokenId !== undefined ? (
     <section>
       <div>
         <h1 className="text-2xl font-bold ">Let&apos;s get started</h1>
@@ -119,59 +175,48 @@ function MyConnectVatar({ address }: { address: `0x${string}` }) {
             Create a unique digital representation of yourself.
           </p>
           <Button
-            onClick={() => {
-              const args = [
-                BigInt(
-                  JSON.parse(localStorage.getItem("worldcoinSignature") || "{}")
-                    .message
-                ), // nullifierHash
-                BigInt(
-                  1
-                  // JSON.parse(localStorage.getItem("worldcoinSignature") || "{}")
-                  //   .signature
-                ), // signedHash
-                parseInt(connectedTag), // nfcSerialHash
-              ];
-              writeContract({
-                address: connektvatar.contractAddress,
-                abi: connektvatar.contractAbi,
-                functionName: "safeMint",
-                value: parseEther("0.01"),
-                args,
-              });
-              console.log("Minting...", mintError, args);
-            }}
+            onClick={handleMint}
             disabled={isMintPending}
             className="font-bold py-2 px-4 hover:bg-red-500 bg-yellow-400 rounded-md shadow-md"
           >
             {isMintPending
               ? "Minting..."
               : isMintSuccess
-              ? "Yay you successfully minted 🎊"
+              ? "Yay you successfully minted 🎊 "
               : "Mint your Connectvatar 🎨"}
             {}
           </Button>
           <p className="text-gray-500 text-sm">
             This will require a small gas fee (one-time cost).
           </p>
+          {mintHash && (
+            <p className="text-gray-500 text-sm">Txn Hash: {mintHash}</p>
+          )}
         </div>
       </div>
       <div>
-        <h1 className="text-2xl font-bold mt-10">Your connekt balance:</h1>
-        <div className="flex justify-between items-center py-4 border-b border-1 border-gray-600">
-          <p className="text-gray-300 font-medium">Connekt Coin (CNKT)</p>
+        <h1 className="text-2xl font-bold mt-10 flex justify-start itmes-center">
+          Your connekt balance:{" "}
           {account?.address && <Balance address={account.address} />}
-        </div>
+        </h1>
       </div>
     </section>
   ) : (
-    <div>
-      <ConnectWithFrens />
-    </div>
+    <ConnectWithFrens />
   );
 }
 
 function ConnectWithFrens() {
+  const account = useAccount();
+
+  const {
+    data: connectHash,
+    writeContract: connectWriteContract,
+    isSuccess: isConnectSuccess,
+    isPending: isConnectPending,
+    error: connecktError,
+  } = useWriteContract();
+
   function handleFrenTagRead() {
     const ndef = new NDEFReader();
     ndef
@@ -190,8 +235,24 @@ function ConnectWithFrens() {
           );
           // Add the function to connect with frens
           // TODO: Check with contract if already connected
+          isConnectedFrom(account?.address || "", serialNumber).then(
+            (isConnected) => {
+              if (isConnected) {
+                console.log("Already connected with fren");
+              } else {
+                console.log("Not connected with fren");
+              }
+            }
+          );
           // If not, connect with frens
-          // TODO: Share the NFC tag of fren to the contract to validate and earn points
+          connectWriteContract({
+            address: connektvatar.contractAddress,
+            abi: connektvatar.contractAbi,
+            functionName: "connekt",
+            args: [
+              parseInt(serialNumber), // nfcSerialHash
+            ],
+          });
         };
       })
       .catch((error) => {
@@ -226,7 +287,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-2">
-      <MyConnectVatar address={account?.address as any} />
+      <MyConnectVatar />
 
       <section className="ring-1 rounded-xl ring-zinc-600 p-3 mt-10">
         <h1 className="text-xl font-bold text-white mb-2  ">
