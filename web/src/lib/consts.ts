@@ -1,5 +1,5 @@
 export const connektvatar: any = {
-  contractAddress: "0x5b0cF6cf6742429a209597a160086Df57ef9E950",
+  contractAddress: "0xa025a3cc215D91d36041Bbdfb30606E75bBDB35a",
   contractAbi: [
     {
       "inputs": [
@@ -677,7 +677,7 @@ export const connektvatar: any = {
 
 
 export const connekt: any = {
-  contractAddress: "0x217cEFE88031F880524308015712426B4cAEeD83",
+  contractAddress: "0x090469d7F6c7Cb5FF94925A98F82D158feFbA4DE",
   contractAbi: [
     {
       "inputs": [
