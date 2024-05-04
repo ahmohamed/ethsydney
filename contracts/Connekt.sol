@@ -39,6 +39,7 @@ contract ConnectERC20 is ERC20, ERC20Burnable, ERC20Permit, VRFConsumerBaseV2Plu
     {
         COORDINATOR = IVRFCoordinatorV2Plus(vrfCoordinator);
         subscriptionId = _subscriptionId;
+        randomNumber();
     }
     
     function randomNumber() internal  view returns (uint256) {
@@ -77,6 +78,11 @@ contract ConnectERC20 is ERC20, ERC20Burnable, ERC20Permit, VRFConsumerBaseV2Plu
 
     function _internal_mint(address to, uint256 amount) internal {
         _mint(to, amount);
+        uint256 tokenBalance = balanceOf(to);
+        if (tokenBalance > highestBalance) {
+            highestBalance = tokenBalance;
+            highestHolder = payable(to);
+        }
     }
     
     function getHighestHolder() external view returns (address payable ){
@@ -84,8 +90,7 @@ contract ConnectERC20 is ERC20, ERC20Burnable, ERC20Permit, VRFConsumerBaseV2Plu
     }
 
     function resetBalance(address holder) external onlyOwner{
-        // TODO
-        // highestHolder;
+        _burn(holder, balanceOf(holder));
     }
 
     // User zero decimals. Tokens not divisible.
