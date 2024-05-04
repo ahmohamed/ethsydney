@@ -69,26 +69,27 @@ function MyConnectVatar({ address }: { address: `0x${string}` }) {
         console.log(`Error! Scan failed to start: ${error}.`);
       });
   }
+
   const {
     data: tokenId,
-    isLoading,
-    error,
+    isLoading: isTokenLoading,
+    error: tokenIdError,
   } = useReadContract({
-    address: connektvatar.contractAddress,
     abi: connektvatar.contractAbi,
+    address: connektvatar.contractAddress,
     functionName: "getTokenIdForAddress",
     args: [address],
   });
 
   useEffect(() => {
-    console.log("error", error, tokenId);
+    tokenIdError && console.error("Error ", tokenIdError);
+    console.log("tokenId", tokenId);
   }, []);
 
-  return isLoading ? (
+  return isTokenLoading ? (
     <p>Loading your Connectvatar...</p>
-  ) : (
+  ) : tokenId === undefined ? (
     <section>
-      {" "}
       <div>
         <h1 className="text-2xl font-bold ">Let&apos;s get started</h1>
         <h3 className="text-xl text-zinc-400 font-medium ">
@@ -143,8 +144,12 @@ function MyConnectVatar({ address }: { address: `0x${string}` }) {
             disabled={isMintPending}
             className="font-bold py-2 px-4 hover:bg-red-500 bg-yellow-400 rounded-md shadow-md"
           >
-            {isMintPending ? "Minting..." : "Mint your Connectvatar 🎨"}{" "}
-            {isMintSuccess && "🎊"}
+            {isMintPending
+              ? "Minting..."
+              : isMintSuccess
+              ? "Yay you successfully minted 🎊"
+              : "Mint your Connectvatar 🎨"}
+            {}
           </Button>
           <p className="text-gray-500 text-sm">
             This will require a small gas fee (one-time cost).
@@ -158,8 +163,11 @@ function MyConnectVatar({ address }: { address: `0x${string}` }) {
           {account?.address && <Balance address={account.address} />}
         </div>
       </div>
-      <ConnectWithFrens />
     </section>
+  ) : (
+    <div>
+      <ConnectWithFrens />
+    </div>
   );
 }
 
