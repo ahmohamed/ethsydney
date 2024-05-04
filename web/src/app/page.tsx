@@ -14,7 +14,17 @@ export default function Home() {
   const [worldcoinVerified, setWorldcoinVerified] = useState<boolean>(false);
   const account = useAccount();
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    const signature = localStorage.getItem("worldcoinSignature");
+    if (signature) {
+      setWorldcoinVerified(true);
+      const worldcoinSignature = JSON.parse(signature);
+      setWorldcoinId({
+        nullifier_hash: worldcoinSignature.message,
+      });
+      console.log("Loaded worldcoin");
+    }
+  }, []);
 
   const handleVerify = async (proof: any) => {
     // console.log(proof);
@@ -31,27 +41,50 @@ export default function Home() {
     setWorldcoinVerified(data.verified);
   };
 
-  const onSuccess = (proof: any) => {
-    // console.log(proof);
+  const handleSign = async (message: string) => {
+    const response = await fetch("/api/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    if (!response.ok) {
+      throw new Error(`Error signing Worldcoin: ${response.statusText}`);
+    }
+
+    const signedMessage = await response.json();
+    localStorage.setItem(
+      "worldcoinSignature",
+      JSON.stringify({
+        message,
+        signature: signedMessage,
+      })
+    );
+  };
+
+  const onSuccess = async (proof: any) => {
+    // Sign the verified nullifier hash and store in the localStorage
+    await handleSign(proof.nullifier_hash);
     setWorldcoinId(proof);
   };
+
+  useEffect(() => {}, []);
 
   return (
     <main className="container flex min-h-screen flex-col items-center justify-center p-10">
       <div className="absolute top-5 right-5">
         <ModeToggle />
       </div>
-      <div className="relative flex flex-cols justify-center items-center place-items-center container">
+      <div className="relative grid grid-cols-1 container place-items-center">
         <Image
-          className="relative mr-10"
+          className="relative"
           src="/giphy.gif"
           alt="Logo"
           width={250}
           height={250}
           priority
         />
-        <div className="">
-          <div className="text-4xl font-bold">Connekt2Win</div>
+        <div className="text-center mb-5">
+          <div className="text-4xl font-bold">Connekt</div>
           <div className="text-lg w-[300px] mt-3 text-zinc-600">
             Tap NFC tags, level up your NFT, and compete with friends for a
             chance to win real money!{" "}
@@ -63,7 +96,7 @@ export default function Home() {
       </div>
 
       <section className="lg:max-w-5xl lg:w-full ">
-        <div className="ring-1 ring-zinc-700 rounded-xl p-8 w-full">
+        <div className="ring-1 ring-zinc-700 rounded-xl p-3 w-full">
           {!account?.address ? (
             <div className="flex justify-center items-center flex-col">
               <h3 className="text-md mb-5">
@@ -91,17 +124,17 @@ export default function Home() {
                     )}
                   </IDKitWidget>
                 ) : (
-                  <div className="">
-                    <Badge>Verified with Worldcoin</Badge>
-                    <p className="text-zinc-600 mt-2">
-                      {worldcoinId.nullifier_hash.slice(0, 10)}...
-                      {worldcoinId.nullifier_hash.slice(-10)}
+                  <div className="text-right">
+                    <Badge>Worldcoin ✅</Badge>
+                    <p className="text-zinc-600 text-sm mt-2 text-right">
+                      {worldcoinId.nullifier_hash.slice(0, 6)}...
+                      {worldcoinId.nullifier_hash.slice(-6)}
                     </p>
                   </div>
                 )}
               </div>
 
-              {account?.address && (
+              {account?.address && worldcoinVerified && (
                 <section className="mt-4 flex justify-center items-center">
                   <Dashboard />
                 </section>

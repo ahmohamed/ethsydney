@@ -8,28 +8,14 @@ import { WagmiProvider } from "wagmi";
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { type ThemeProviderProps } from "next-themes/dist/types";
-import {
-  mainnet,
-  optimism,
-  arbitrum,
-  sepolia,
-  optimismSepolia,
-  arbitrumSepolia,
-} from "wagmi/chains";
+import { sepolia, mantle, mantaTestnet } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 const queryClient = new QueryClient();
 
 const config = getDefaultConfig({
-  appName: "Geo Sync",
+  appName: "Connekt",
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID || "",
-  chains: [
-    mainnet,
-    optimism,
-    arbitrum,
-    sepolia,
-    optimismSepolia,
-    arbitrumSepolia,
-  ],
+  chains: [sepolia, mantle, mantaTestnet],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 
