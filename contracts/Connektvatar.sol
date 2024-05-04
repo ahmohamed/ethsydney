@@ -5,6 +5,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "interfaces/IConnekt.sol";
 
 contract Connectvatar is ERC721, ERC721URIStorage, Ownable {
@@ -32,13 +33,17 @@ contract Connectvatar is ERC721, ERC721URIStorage, Ownable {
         _;
     }
 
+    function idToFilename(uint256 tokenId) public pure returns(string memory) {
+        return string.concat("metadata-", Strings.toString(tokenId), ".json");
+    }
+
     function safeMint(uint256 nullifierHash, uint256 signedHash, uint256 nfcSerialHash) public payable onlyNewUser(nullifierHash) {
         require(msg.value >= NFTPRICE, "Insufficient funds");
         uint256 tokenId = _nextTokenId++;
 
         _safeMint(msg.sender, tokenId);
         _updateMaps(msg.sender, nullifierHash, nfcSerialHash);
-        // _setTokenURI(tokenId, uri);
+        _setTokenURI(tokenId, idToFilename(tokenId));
         checkRaffle();
     }
     
