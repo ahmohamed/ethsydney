@@ -95,7 +95,7 @@ export default function Home() {
             </span>
           </div>
           <div className="font-bold text-zinc-400 -mt-3">
-            A nounish game to connect, earn & win big
+            A nounish game to connect, earn & win
           </div>
         </div>
       </div>

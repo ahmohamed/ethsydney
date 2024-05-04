@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useWriteContract } from "wagmi";
-import { connekt } from "@/lib/consts";
+import { connekt, connektvatar } from "@/lib/consts";
 import { useReadContract } from "wagmi";
 import { useAccount } from "wagmi";
-
-// import Nfc from "nfc-react-web";
+import { parseEther } from "viem";
 
 function Balance({ address }: { address: `0x${string}` }) {
   const { data: balance, isLoading } = useReadContract({
@@ -19,8 +18,29 @@ function Balance({ address }: { address: `0x${string}` }) {
     <p>Loading...</p>
   ) : (
     <p className="text-xl font-bold text-yellow-500">
-      {JSON.stringify(balance)} CNKT
+      {parseInt(balance as string)} CNKT
     </p>
+  );
+}
+
+function ConnectVatar({ address }: { address: `0x${string}` }) {
+  const { data: balance, isLoading } = useReadContract({
+    address: connektvatar.contractAddress,
+    abi: connektvatar.contractAbi,
+    functionName: "balanceOf",
+    args: [address],
+  });
+
+  return isLoading ? (
+    <p>Loading...</p>
+  ) : (
+    <div className="flex">
+      <img
+        className="h-10 w-10"
+        src={`https://bafybeibm5kcupvkixeieonzisk4slwigc2zxesmj3dt3wx4oawybupnfza.ipfs.nftstorage.link/1.jpg`}
+        alt=""
+      />
+    </div>
   );
 }
 
@@ -30,24 +50,14 @@ export default function Dashboard() {
   const account = useAccount();
   const {
     data: hash,
-    writeContract: mint,
+    writeContract,
     isSuccess: isMintSuccess,
     isPending: isMintPending,
+    error: mintError,
   } = useWriteContract();
 
-  async function handleMint() {
-    mint({
-      address: connekt.contractAddress,
-      abi: connekt.contractAbi,
-      functionName: "mint",
-      args: [
-        // Add the tokenId here
-        // Other args
-      ],
-    });
-  }
-
   function handleTagRead() {
+    setListeningSelfTag(true);
     const ndef = new NDEFReader();
     ndef
       .scan()
@@ -110,6 +120,8 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-2">
+      <ConnectVatar address={account.address as any} />
+
       <section>
         <h1 className="text-2xl font-bold ">Let&apos;s get started</h1>
         <h3 className="text-xl text-zinc-400 font-medium ">
@@ -120,23 +132,14 @@ export default function Dashboard() {
             <div className="flex justify-between items-center bg-gray-100 rounded-lg shadow-md p-2">
               <p className="text-gray-800 font-medium">{connectedTag}</p>
               <Button
-                onClick={() => {
-                  setListeningSelfTag(true);
-                  handleTagRead();
-                }}
+                onClick={handleTagRead}
                 className="text-sm bg-red-500 text-white hover:bg-zinc-800"
               >
                 Rescan 🔃
               </Button>
             </div>
           ) : (
-            <Button
-              className="font-bold"
-              onClick={() => {
-                setListeningSelfTag(true);
-                handleTagRead();
-              }}
-            >
+            <Button className="font-bold" onClick={handleTagRead}>
               {listeningSelfTag ? "Listening for tag..." : "Sync NFC Tag 🔗"}
             </Button>
           )}
@@ -149,11 +152,34 @@ export default function Dashboard() {
             Create a unique digital representation of yourself.
           </p>
           <Button
-            onClick={handleMint}
+            onClick={() => {
+              const args = [
+                BigInt(
+                  1
+                  // JSON.parse(localStorage.getItem("worldcoinSignature") || "{}")
+                  //   .message
+                ), // nullifierHash
+                BigInt(
+                  1
+                  // JSON.parse(localStorage.getItem("worldcoinSignature") || "{}")
+                  //   .signature
+                ), // signedHash
+                parseInt(connectedTag), // nfcSerialHash
+              ];
+              writeContract({
+                address: connektvatar.contractAddress,
+                abi: connektvatar.contractAbi,
+                functionName: "safeMint",
+                value: parseEther("0.01"),
+                args,
+              });
+              console.log("Minting...", mintError, args);
+            }}
             disabled={isMintPending}
             className="font-bold py-2 px-4 hover:bg-red-500 bg-yellow-400 rounded-md shadow-md"
           >
-            {isMintPending ? "Minting..." : "Mint your Connectvatar 🎨"}
+            {isMintPending ? "Minting..." : "Mint your Connectvatar 🎨"}{" "}
+            {isMintSuccess && "🎊"}
           </Button>
           <p className="text-gray-500 text-sm">
             This will require a small gas fee (one-time cost).
@@ -165,7 +191,6 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold mt-10">Your connekt balance:</h1>
         <div className="flex justify-between items-center py-4 border-b border-1 border-gray-600">
           <p className="text-gray-300 font-medium">Connekt Coin (CNKT)</p>
-          <span className="text-xl font-bold text-yellow-500">10.00 CNKT</span>
           {account?.address && <Balance address={account.address} />}
         </div>
       </section>
