@@ -11,9 +11,10 @@ import "interfaces/IConnekt.sol";
 contract Connectvatar is ERC721, ERC721URIStorage, Ownable {
     uint256 private _nextTokenId;
     uint256 constant NFTPRICE = 0.01 * 10 ** 18;
-    uint256 constant POTSIZE = 0.5 * 10 ** 18;
+    uint256 POTSIZE = 0.02 * 10 ** 18;
     address connektAddress;
     string dirURI;
+    mapping(address => uint256) internal tokenIdToAddress;
     mapping(uint256 => bool) internal nullifierHashes;
     mapping(address => uint256) internal addressHashes;
     mapping(address => uint256) internal addressToNFCHash;
@@ -41,16 +42,35 @@ contract Connectvatar is ERC721, ERC721URIStorage, Ownable {
         require(msg.value >= NFTPRICE, "Insufficient funds");
         uint256 tokenId = _nextTokenId++;
 
+        // mint avatar
         _safeMint(msg.sender, tokenId);
+        
+        // mint welcome points
+        IConnekt(connektAddress).mint(msg.sender);
+
+        // update mappings
+        tokenIdToAddress[msg.sender] = tokenId;
         _updateMaps(msg.sender, nullifierHash, nfcSerialHash);
-        _setTokenURI(tokenId, idToFilename(tokenId));
+        
+        // _setTokenURI(tokenId, idToFilename(tokenId));
         checkRaffle();
     }
     
+    function getTokenIdForAddress(address holder) public view returns (uint256) {
+        require(addressHashes[msg.sender] != 0, "Unregistered user");
+        return tokenIdToAddress[holder];
+    }
+
+    function connekted(address from, uint256 nfcSerialHash) public view returns (bool){
+        return Connections[from][nfcSerialHash];
+    }
+
     function connekt(uint256 nfcSerialHash) public {
         require(addressHashes[msg.sender] != 0, "Unregistered user");
         require(!Connections[msg.sender][nfcSerialHash], "Users already connected");
         IConnekt(connektAddress).mint(msg.sender);
+
+        Connections[msg.sender][nfcSerialHash] = true;
     }
 
     function updateNFC(uint256 nfcSerialHash) public {
