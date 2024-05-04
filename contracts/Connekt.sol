@@ -15,7 +15,7 @@ import "interfaces/IConnekt.sol";
 
 contract ConnectERC20 is ERC20, ERC20Burnable, ERC20Permit, VRFConsumerBaseV2Plus, IConnekt {
     event RequestSent(uint256 requestId, uint32 numWords);
-    event RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 amount);
+    event RequestFulfilled(uint256 requestId, uint256 randomWords, uint256 amount);
 
     /// @notice Chainlink VRF Coordinator Config for Sepolia Testnet
     IVRFCoordinatorV2Plus COORDINATOR;
@@ -40,22 +40,43 @@ contract ConnectERC20 is ERC20, ERC20Burnable, ERC20Permit, VRFConsumerBaseV2Plu
         COORDINATOR = IVRFCoordinatorV2Plus(vrfCoordinator);
         subscriptionId = _subscriptionId;
     }
+    
+    function randomNumber() internal  view returns (uint256) {
+        return uint256(blockhash(block.number - 1));
+    }
+    
+    function _randomNumberToAmount(uint256 rand) internal pure returns (uint256) {
+        uint256 rand5 = (rand % 5) + 1;
+        uint256 rand7 = (rand % 5) + 1;
+        uint256 rand29 = (rand % 5) + 1;
+        return rand5 * rand7 * rand29;
+    }
 
     function mint(address to) public onlyOwner {
-        uint256 requestId = COORDINATOR.requestRandomWords(
-            VRFV2PlusClient.RandomWordsRequest({
-                keyHash: keyHash,
-                subId: subscriptionId,
-                requestConfirmations: requestConfirmations,
-                callbackGasLimit: callbackGasLimit,
-                numWords: numWords,
-                extraArgs: VRFV2PlusClient._argsToBytes(
-                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
-                )
-            })
-        );
-        requests[requestId] = to;
-        emit RequestSent(requestId, numWords);
+        // chainlink is stalled on sepolia
+        // See Txns on https://sepolia.etherscan.io/address/0x79f2743c4526a267a0e285d436ff3f787f784337
+        // uint256 requestId = COORDINATOR.requestRandomWords(
+        //     VRFV2PlusClient.RandomWordsRequest({
+        //         keyHash: keyHash,
+        //         subId: subscriptionId,
+        //         requestConfirmations: requestConfirmations,
+        //         callbackGasLimit: callbackGasLimit,
+        //         numWords: numWords,
+        //         extraArgs: VRFV2PlusClient._argsToBytes(
+        //             VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+        //         )
+        //     })
+        // );
+        // requests[requestId] = to;
+        // emit RequestSent(requestId, numWords);
+
+        uint256 amount = _randomNumberToAmount(randomNumber());
+        emit RequestFulfilled(0, 0, amount);
+        _internal_mint(to, amount);
+    }
+
+    function _internal_mint(address to, uint256 amount) internal {
+        _mint(to, amount);
     }
     
     function getHighestHolder() external view returns (address payable ){
@@ -73,24 +94,19 @@ contract ConnectERC20 is ERC20, ERC20Burnable, ERC20Permit, VRFConsumerBaseV2Plu
     }
     
     // disable token transfer
-    function transfer(address to, uint256 value) public override returns (bool)
-    {
+    function transfer(address to, uint256 value) public override returns (bool) {
         require(false, "CNCT points are not transferable");
         return super.transfer(to, value);
     }
-
+    
     function fulfillRandomWords(
         uint256 _requestId,
         uint256[] memory _randomWords
     ) internal override {
         require(requests[_requestId] != address(0), "Error: Request not found");
-        uint256 rand5 = (_randomWords[0] % 5) + 1;
-        uint256 rand7 = (_randomWords[0] % 5) + 1;
-        uint256 rand29 = (_randomWords[0] % 5) + 1;
-
-        uint256 amount = rand5 * rand7 * rand29;
-        _mint(requests[_requestId], amount);
+        uint256 amount = _randomNumberToAmount(_randomWords[0]);
+        _internal_mint(requests[_requestId], amount);
         requests[_requestId] = address(0);
-        emit RequestFulfilled(_requestId, _randomWords, amount);
+        emit RequestFulfilled(_requestId, _randomWords[0], amount);
     }
 }
