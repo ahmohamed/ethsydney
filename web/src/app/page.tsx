@@ -11,12 +11,24 @@ import Dashboard from "@/components/Pages/Dashboard";
 
 export default function Home() {
   const [worldcoinId, setWorldcoinId] = useState<any>(null);
+  const [worldcoinVerified, setWorldcoinVerified] = useState<boolean>(false);
   const account = useAccount();
 
   useEffect(() => {}, []);
 
-  const handleVerify = (proof: any) => {
+  const handleVerify = async (proof: any) => {
     // console.log(proof);
+    const response = await fetch("/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proof }),
+    });
+    if (!response.ok) {
+      throw new Error(`Error verifying Worldcoin: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    setWorldcoinVerified(data.verified);
   };
 
   const onSuccess = (proof: any) => {
@@ -29,18 +41,24 @@ export default function Home() {
       <div className="absolute top-5 right-5">
         <ModeToggle />
       </div>
-      <div className="relative flex place-items-center">
+      <div className="relative flex flex-cols justify-center items-center place-items-center container">
         <Image
           className="relative mr-10"
           src="/giphy.gif"
           alt="Logo"
-          width={300}
-          height={300}
+          width={250}
+          height={250}
           priority
         />
-        <div className="mr-10">
-          <div className="text-3xl font-bold">connectamint</div>
-          <div className="text-lg">connect to win</div>
+        <div className="">
+          <div className="text-4xl font-bold">Connekt2Win</div>
+          <div className="text-lg w-[300px] mt-3 text-zinc-600">
+            Tap NFC tags, level up your NFT, and compete with friends for a
+            chance to win real money!{" "}
+            <span className="font-bold text-zinc-500">
+              Connect. Level Up. Earn.
+            </span>
+          </div>
         </div>
       </div>
 
@@ -60,9 +78,8 @@ export default function Home() {
 
                 {!worldcoinId ? (
                   <IDKitWidget
-                    app_id="app_staging_d1949ce471d8eae4777df0a864bcc8f8" // obtained from the Developer Portal
-                    action="verify_human" // this is your action id from the Developer Portal
-                    action_description="verify your identity" // this is your action description from the Developer Portal
+                    app_id="app_staging_6885a9ae16c352e8434d6b164197e372" // obtained from the Developer Portal
+                    action="verify-human" // this is your action id from the Developer Portal
                     onSuccess={onSuccess} // callback when the modal is closed
                     handleVerify={handleVerify} // optional callback when the proof is received
                     verification_level={VerificationLevel.Device}
@@ -85,7 +102,7 @@ export default function Home() {
               </div>
 
               {account?.address && (
-                <section className="mt-4">
+                <section className="mt-4 flex justify-center items-center">
                   <Dashboard />
                 </section>
               )}
