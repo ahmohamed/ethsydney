@@ -7,7 +7,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Geo Sync",
+  title: "Connekt",
   description: "This app does something",
   icons: ["giphy.gif"],
 };
