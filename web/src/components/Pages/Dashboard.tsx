@@ -1,8 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import Nfc from "nfc-react-web";
 
 export default function Dashboard() {
   const [connectedTag, setConnectedTag] = useState<string>("");
+
+  function handleTagRead(data: any) {
+    console.log(`Data read from tag: ${JSON.stringify(data)}`);
+    setConnectedTag(data /* Assuming data contains the tag ID */);
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <section>
@@ -15,6 +22,8 @@ export default function Dashboard() {
           ) : (
             <li className="bg-gray-100 border-orange-600 rounded-lg shadow-md p-4">
               <p className="text-gray-800 font-bold">Add your tag ➕</p>
+              <Nfc read={handleTagRead} timeout={15} />{" "}
+              {/* Pass handleTagRead function */}
             </li>
           )}
         </ul>

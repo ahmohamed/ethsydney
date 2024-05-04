@@ -4474,6 +4474,11 @@ next@14.1.3:
     "@next/swc-win32-ia32-msvc" "14.1.3"
     "@next/swc-win32-x64-msvc" "14.1.3"
 
+nfc-react-web@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.npmjs.org/nfc-react-web/-/nfc-react-web-0.0.2.tgz#7749fd653f279a324744c8a34bee59d754ed0414"
+  integrity sha512-5a1p9hj0g4xqrY2icABlYRzjC093+uaOrGI8pd34nllXg8qqS2dem72XBCgaYg72E4hEXxg5WvKCPU3p8m/eSA==
+
 node-addon-api@^2.0.0:
   version "2.0.2"
   resolved "https://registry.npmjs.org/node-addon-api/-/node-addon-api-2.0.2.tgz#432cfa82962ce494b132e9d72a15b29f71ff5d32"
