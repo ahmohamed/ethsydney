@@ -6,11 +6,23 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { Badge } from "@/components/ui/badge";
+import { IDKitWidget, VerificationLevel } from "@worldcoin/idkit";
+import Dashboard from "@/components/Pages/Dashboard";
 
 export default function Home() {
+  const [worldcoinId, setWorldcoinId] = useState<any>(null);
   const account = useAccount();
 
   useEffect(() => {}, []);
+
+  const handleVerify = (proof: any) => {
+    // console.log(proof);
+  };
+
+  const onSuccess = (proof: any) => {
+    // console.log(proof);
+    setWorldcoinId(proof);
+  };
 
   return (
     <main className="container flex min-h-screen flex-col items-center justify-center p-10">
@@ -22,13 +34,13 @@ export default function Home() {
           className="relative mr-10"
           src="/giphy.gif"
           alt="Logo"
-          width={180}
-          height={180}
+          width={300}
+          height={300}
           priority
         />
         <div className="mr-10">
-          <div className="text-3xl font-bold">geosync</div>
-          <div className="text-lg ">zk enabled proof of location</div>
+          <div className="text-3xl font-bold">connectamint</div>
+          <div className="text-lg">connect to win</div>
         </div>
       </div>
 
@@ -43,12 +55,39 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex justify-center items-start flex-col">
-              <div className="flex w-full justify-center items-center">
+              <div className="flex w-full justify-between items-center">
                 <ConnectButton />
+
+                {!worldcoinId ? (
+                  <IDKitWidget
+                    app_id="app_staging_d1949ce471d8eae4777df0a864bcc8f8" // obtained from the Developer Portal
+                    action="verify_human" // this is your action id from the Developer Portal
+                    action_description="verify your identity" // this is your action description from the Developer Portal
+                    onSuccess={onSuccess} // callback when the modal is closed
+                    handleVerify={handleVerify} // optional callback when the proof is received
+                    verification_level={VerificationLevel.Device}
+                  >
+                    {({ open }) => (
+                      <Button className="font-bold" onClick={open}>
+                        Verify with World ID
+                      </Button>
+                    )}
+                  </IDKitWidget>
+                ) : (
+                  <div className="">
+                    <Badge>Verified with Worldcoin</Badge>
+                    <p className="text-zinc-600 mt-2">
+                      {worldcoinId.nullifier_hash.slice(0, 10)}...
+                      {worldcoinId.nullifier_hash.slice(-10)}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {account?.address && (
-                <div className="mt-10 flex justify-center items-center flex-col w-full"></div>
+                <section className="mt-4">
+                  <Dashboard />
+                </section>
               )}
             </div>
           )}
