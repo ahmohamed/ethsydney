@@ -1,9 +1,9 @@
-import { BigNumber, Contract, ContractTransaction, utils, Wallet } from "ethers";
+import { BigNumber, Contract, ContractTransaction, HDNodeWallet, utils, Wallet } from "ethers";
 import * as fs from "fs";
 import { ethers, network } from "hardhat";
 import * as path from "path";
 import { keyInSelect, keyInYNStrict, question } from "readline-sync";
-import { Counter } from "../types";
+import { Counter } from "../typechain-types";
 import { deployCounter } from "./deploy";
 import { chainIds, explorerUrl, GAS_MODE, UrlType } from "../hardhat.config";
 import { Deployment, DeploymentContract, Deployments, GasOptions } from "./types";
@@ -69,7 +69,7 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
     }
 }
 
-async function askForWallet(): Promise<Wallet> {
+async function askForWallet(): Promise<HDNodeWallet> {
     console.log(`Your available BIP-44 derivation path (m/44'/60'/0'/0) account wallets to use:`);
     const signers = await ethers.getSigners();
     for (let i = 1; i <= signers.length; i++) {
@@ -78,8 +78,9 @@ async function askForWallet(): Promise<Wallet> {
 
     const accountNumber = askForNumber(`the wallet you wish to use (1-${signers.length})`);
     const accounts = network.config.accounts as HardhatNetworkHDAccountsConfig;
-    const wallet = ethers.Wallet.fromMnemonic(
-        accounts.mnemonic,
+    console.log(accounts.mnemonic)
+    const wallet = ethers.HDNodeWallet.fromMnemonic(
+        ethers.Mnemonic.fromPhrase(accounts.mnemonic),
         accounts.path + `/${accountNumber - 1}`,
     );
 

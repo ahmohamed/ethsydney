@@ -1,0 +1,87 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/mohamed.a/personal/aiwhisperers/connekt2/contracts/Counter.sol": {
+      "lastModificationDate": 1716374063034,
+      "contentHash": "a4328c64ca324c8108f3f0236e537667",
+      "sourceName": "contracts/Counter.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200,
+            "details": {
+              "yul": true
+            }
+          },
+          "viaIR": false,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/ICounter.sol"
+      ],
+      "versionPragmas": [
+        ">=0.8.17"
+      ],
+      "artifacts": [
+        "Counter"
+      ]
+    },
+    "/Users/mohamed.a/personal/aiwhisperers/connekt2/contracts/interfaces/ICounter.sol": {
+      "lastModificationDate": 1716374086334,
+      "contentHash": "d735b5b99b385d7dd393643e3589cb1f",
+      "sourceName": "contracts/interfaces/ICounter.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200,
+            "details": {
+              "yul": true
+            }
+          },
+          "viaIR": false,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.8.17"
+      ],
+      "artifacts": [
+        "ICounter"
+      ]
+    }
+  }
+}

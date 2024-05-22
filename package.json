@@ -52,9 +52,13 @@
         "@matterlabs/hardhat-zksync-deploy": "^0.5.2",
         "@matterlabs/hardhat-zksync-solc": "^0.3.11-beta.1",
         "@nomicfoundation/hardhat-chai-matchers": "1",
+        "@nomicfoundation/hardhat-ethers": "^3.0.0",
+        "@nomicfoundation/hardhat-ignition": "^0.15.3",
         "@nomicfoundation/hardhat-ignition-ethers": "^0.15.3",
         "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
         "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+        "@nomicfoundation/hardhat-verify": "^2.0.0",
+        "@nomicfoundation/ignition-core": "^0.15.3",
         "@nomiclabs/hardhat-ethers": "^2.2.3",
         "@nomiclabs/hardhat-etherscan": "^3.1.8",
         "@nomiclabs/hardhat-solhint": "^3.0.0",
@@ -75,7 +79,7 @@
         "eslint-config-prettier": "^8.6.0",
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-prettier": "^4.2.1",
-        "ethers": "5",
+        "ethers": "^6.12.1",
         "hardhat": "^2.13.0",
         "hardhat-contract-sizer": "^2.6.1",
         "hardhat-gas-reporter": "^2.1.1",
@@ -89,6 +93,7 @@
         "toml": "^3.0.0",
         "ts-node": "^10.9.1",
         "typechain": "^8.3.2",
-        "typescript": "^5.0.4"
+        "typescript": "^5.0.4",
+        "zksync-web3": "^0.17.1"
     }
 }

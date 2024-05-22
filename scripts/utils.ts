@@ -3,14 +3,14 @@ import { BaseContract, ContractReceipt, ContractTransaction, utils } from "ether
 import { Interface } from "ethers/lib/utils";
 
 import { TransactionReceipt } from "@ethersproject/providers";
-import { GAS_MODE } from "../__hardhat.config.ts";
+import { GAS_MODE } from "../hardhat.config";
 
 // --- Transaction & contract deployment helpers ---
 
 // Wait for a contract to be deployed.
 export async function deployWait<T extends BaseContract>(contractPromise: Promise<T>): Promise<T> {
     const contract = await contractPromise;
-    await contract.deployed();
+    await contract.waitForDeployment();
     return contract;
 }
 

@@ -1,4 +1,5 @@
 import "@nomicfoundation/hardhat-toolbox";
+import "hardhat-tracer";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 import { NetworkUserConfig } from "hardhat/types";
 import { subtask } from "hardhat/config";
@@ -84,7 +85,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
   }
   return {
       accounts: {
-          mnemonic: process.env.MNEMONIC,
+          mnemonic: "picnic cannon emerge vague slush hover canal found actress copper jazz cinnamon depart alone jar",
           path: `m/44'/60'/0'/0`,
       },
       chainId: chainIds[chain],
@@ -186,7 +187,7 @@ module.exports = {
   networks: {
     hardhat: {
         accounts: {
-            mnemonic: process.env.MNEMONIC,
+            mnemonic: "picnic cannon emerge vague slush hover canal found actress copper jazz cinnamon depart alone jar",
         },
         allowUnlimitedContractSize: true,
         chainId: chainIds.hardhat,

@@ -15,7 +15,7 @@
         "./media",
         "./node_modules"
     ],
-    "files": ["__hardhat.config.ts"],
+    "files": ["hardhat.config.ts"],
     "compilerOptions": {
         /* Visit https://aka.ms/tsconfig.json to read more about this file */
         //
