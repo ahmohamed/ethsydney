@@ -54,7 +54,7 @@ function Balance({ address }: { address: `0x${string}` }) {
   return isLoading ? (
     <p>Loading...</p>
   ) : (
-    <p className="text-xl font-bold text-yellow-500">
+    <p className="pl-2 pt-1 text-xl font-bold text-yellow-500">
       {parseInt(balance as string)} CNKT
     </p>
   );
@@ -110,41 +110,31 @@ function MyConnectVatar() {
       });
   }
 
-  const handleMint = () => {
-    const args = [
-      BigInt(
-        JSON.parse(localStorage.getItem("worldcoinSignature") || "{}").message
-      ), // nullifierHash
-      BigInt(
-        1 // JSON.parse(localStorage.getItem("worldcoinSignature") || "{}").signature
-      ), // signedHash
-      parseInt(connectedTag), // nfcSerialHash
-    ];
-    writeContract({
-      address: connektvatar.contractAddress,
-      abi: connektvatar.contractAbi,
-      functionName: "safeMint",
-      value: parseEther("0.01"),
-      args,
-    });
-    console.log("Minting...", mintError, args);
-  };
-
   useEffect(() => {
-    getTokenIdForAddress(account?.address || "")
-      .then((tokenId) => {
-        setTokenId(tokenId.toNumber() || 1);
-        setIsTokenLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching tokenId:", error);
-        setIsTokenLoading(false);
-      });
+    if (isMintSuccess) {
+      window.alert("Minting successful" + JSON.stringify(mintHash));
+    } else if (mintError) {
+      window.alert("Minting failed" + JSON.stringify(mintError));
+    }
+
+    if (account?.address) {
+      getTokenIdForAddress(account?.address)
+        .then((tokenId) => {
+          // window.alert(tokenId);
+          setTokenId(tokenId.toNumber() || 1);
+          setIsTokenLoading(false);
+        })
+        .catch((error) => {
+          // window.alert(JSON.stringify(error));
+          console.error("Error fetching tokenId:", error);
+          setIsTokenLoading(false);
+        });
+    }
   }, []);
 
   return isTokenLoading ? (
     <p>Loading your Connectvatar...</p>
-  ) : tokenId !== undefined ? (
+  ) : tokenId === undefined ? (
     <section>
       <div>
         <h1 className="text-2xl font-bold ">Let&apos;s get started</h1>
@@ -175,7 +165,25 @@ function MyConnectVatar() {
             Create a unique digital representation of yourself.
           </p>
           <Button
-            onClick={handleMint}
+            onClick={() => {
+              writeContract({
+                address: connektvatar.contractAddress,
+                abi: connektvatar.contractAbi,
+                functionName: "safeMint",
+                value: parseEther("0.01"),
+                args: [
+                  BigInt(
+                    JSON.parse(
+                      localStorage.getItem("worldcoinSignature") || "{}"
+                    ).message
+                  ), // nullifierHash
+                  BigInt(
+                    1 // JSON.parse(localStorage.getItem("worldcoinSignature") || "{}").signature
+                  ), // signedHash
+                  parseInt(connectedTag), // nfcSerialHash
+                ],
+              });
+            }}
             disabled={isMintPending}
             className="font-bold py-2 px-4 hover:bg-red-500 bg-yellow-400 rounded-md shadow-md"
           >
@@ -200,6 +208,14 @@ function MyConnectVatar() {
           {account?.address && <Balance address={account.address} />}
         </h1>
       </div>
+      <div>
+        <img
+          className="h-20 w-20 mt-5"
+          src={`https://bafybeibm5kcupvkixeieonzisk4slwigc2zxesmj3dt3wx4oawybupnfza.ipfs.nftstorage.link/${3}.jpg`}
+          alt=""
+        />
+        <ConnectWithFrens />
+      </div>
     </section>
   ) : (
     <ConnectWithFrens />
@@ -208,6 +224,8 @@ function MyConnectVatar() {
 
 function ConnectWithFrens() {
   const account = useAccount();
+  const [scanningTag, setScanningTag] = useState<boolean>(false);
+  const [scannedTag, setScannedTag] = useState<string>("");
 
   const {
     data: connectHash,
@@ -218,12 +236,13 @@ function ConnectWithFrens() {
   } = useWriteContract();
 
   function handleFrenTagRead() {
+    setScanningTag(true);
     const ndef = new NDEFReader();
     ndef
       .scan()
       .then(() => {
         console.log("Scan started successfully.");
-        ndef.onreadingerror = (event) => {
+        ndef.onreadingerror = () => {
           console.log(
             "Error! Cannot read data from the NFC tag. Try a different one?"
           );
@@ -233,26 +252,45 @@ function ConnectWithFrens() {
             "Scan started successfully." +
               JSON.stringify({ message, serialNumber })
           );
+          setScanningTag(false);
+          setScannedTag(serialNumber);
           // Add the function to connect with frens
           // TODO: Check with contract if already connected
-          isConnectedFrom(account?.address || "", serialNumber).then(
-            (isConnected) => {
+          isConnectedFrom(account?.address || "", serialNumber)
+            .then((isConnected) => {
               if (isConnected) {
+                window.alert("Already connected with fren");
                 console.log("Already connected with fren");
               } else {
+                window.alert("Not connected with fren");
                 console.log("Not connected with fren");
+
+                // If not, connect with frens
+                connectWriteContract({
+                  address: connektvatar.contractAddress,
+                  abi: connektvatar.contractAbi,
+                  functionName: "connekt",
+                  args: [
+                    parseInt(serialNumber), // nfcSerialHash
+                  ],
+                });
+                if (isConnectSuccess && !connecktError && !isConnectPending) {
+                  window.alert("Connected with fren successfully");
+                }
+                if (!isConnectPending && connecktError) {
+                  window.alert(
+                    "Failed to connect with fren" +
+                      JSON.stringify(connecktError)
+                  );
+                }
               }
-            }
-          );
-          // If not, connect with frens
-          connectWriteContract({
-            address: connektvatar.contractAddress,
-            abi: connektvatar.contractAbi,
-            functionName: "connekt",
-            args: [
-              parseInt(serialNumber), // nfcSerialHash
-            ],
-          });
+            })
+            .catch((error) => {
+              window.alert(
+                "Error fetching connection info for person a:" +
+                  JSON.stringify(error)
+              );
+            });
         };
       })
       .catch((error) => {
@@ -268,23 +306,25 @@ function ConnectWithFrens() {
         {/* UI to read NFC from others  */}
         <p className="text-gray-300 font-medium">Make some monies 🤑</p>
         <Button
-          onClick={
-            //  TODO: Add the function to read NFC from others
-            handleFrenTagRead
-          }
+          onClick={handleFrenTagRead}
           className="font-bold py-2 px-4  rounded-md shadow-md text-white hover:text-white hover:bg-red-500 bg-blue-500 border-red-500  border-3 
         "
         >
-          Connect with frens 🤝
+          {scanningTag
+            ? "Scanning..."
+            : scannedTag
+            ? `${scannedTag} ~ Rescan 🔄`
+            : "Connect with frens 🤝"}
         </Button>
+        {connectHash && (
+          <p className="text-gray-500 text-sm">Txn Hash: {connectHash}</p>
+        )}
       </div>
     </section>
   );
 }
 
 export default function Dashboard() {
-  const account = useAccount();
-
   return (
     <div className="container mx-auto px-4 py-2">
       <MyConnectVatar />
